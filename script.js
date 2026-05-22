@@ -1,41 +1,33 @@
 
 
 //////////////////////////
-// 🧠 GAME STATE
+// GAME STATE
 //////////////////////////
 
-let cardPool = [
+const MAX_HAND = 7;
 
-  // ATTACK
-  { name: "Pipe Bomb", image: "assets/images/attack/pipeBomb.png", effect: "attack", rarity: 35 },
+let deck = [
 
-  // CRAZY
+  { name: "Pipe Bomb", image: "assets/images/attack/pipeBomb.png", effect: "attack" },
+
   { name: "Crazy Pokeball", image: "assets/images/crazy/crazy.png", effect: "chanceDefense" },
   { name: "Radioactive Goose", image: "assets/images/crazy/goose.png", effect: "chaos" },
   { name: "U-Haul", image: "assets/images/crazy/uHaul.png", effect: "turnSwap" },
 
-  // DEFENSE
-  { name: "Package Defuse", image: "assets/images/defense/package.png", effect: "defuse" },
+  { name: "Package Defuse", image: "assets/images/defense/package.png", effect: "defense" },
 
-  // DIE (1/35 REAL)
-  { name: "Digo", image: "assets/images/die/digo.png", effect: "death", rarity: 35 },
-  { name: "Lego Brick", image: "assets/images/die/legoBrick.png", effect: "death", rarity: 35 },
-  { name: "Sus USB", image: "assets/images/die/susUsb.png", effect: "chanceDeath", rarity: 35 },
+  { name: "Digo", image: "assets/images/die/digo.png", effect: "death" },
+  { name: "Lego Brick", image: "assets/images/die/legoBrick.png", effect: "death" },
+  { name: "Sus USB", image: "assets/images/die/susUsb.png", effect: "chanceDeath" },
 
-  // MISC
   { name: "Chair", image: "assets/images/misc/chair.png", effect: "nothing" },
   { name: "Check", image: "assets/images/misc/check.png", effect: "money" },
 
-  // 🧀 CHAOS CHEESE (UPDATED)
   { name: "Cheese", image: "assets/images/misc/cheese.png", effect: "chaosCheese" },
 
   { name: "Melatonin", image: "assets/images/misc/melatonin.png", effect: "melatonin" },
   { name: "Wet Fish", image: "assets/images/misc/wetFish.png", effect: "stun" }
 ];
-
-//////////////////////////
-// 🎮 STATE
-//////////////////////////
 
 let hand = [];
 let enemyHand = [];
@@ -43,386 +35,247 @@ let enemyHand = [];
 let playerTurn = true;
 let gameOver = false;
 
-let turnCount = 0;
 let melatoninStack = 0;
 
 let handDiv = document.getElementById("hand");
 let enemyDiv = document.querySelector(".enemyCards");
-let playedCardArea = document.getElementById("playedCard");
+let playedArea = document.getElementById("playedCard");
 
 //////////////////////////
-// 🧾 SUBTITLE SYSTEM
+// SUBTITLES
 //////////////////////////
 
-let subtitle = document.createElement("div");
-subtitle.style.position = "fixed";
-subtitle.style.bottom = "20px";
-subtitle.style.left = "50%";
-subtitle.style.transform = "translateX(-50%)";
-subtitle.style.color = "white";
-subtitle.style.fontFamily = "Arial";
-subtitle.style.fontSize = "18px";
-subtitle.style.opacity = "0";
-subtitle.style.transition = "0.3s";
-document.body.appendChild(subtitle);
+function show(text) {
+  let el = document.getElementById("sub");
 
-function showSubtitle(text, time = 1200) {
-  subtitle.innerText = text;
-  subtitle.style.opacity = "1";
-  setTimeout(() => subtitle.style.opacity = "0", time);
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "sub";
+    el.style.position = "fixed";
+    el.style.bottom = "20px";
+    el.style.left = "50%";
+    el.style.transform = "translateX(-50%)";
+    el.style.color = "white";
+    el.style.fontFamily = "Arial";
+    document.body.appendChild(el);
+  }
+
+  el.innerText = text;
 }
 
 //////////////////////////
-// 🔁 START GAME
+// START GAME
 //////////////////////////
 
-function initGame() {
+function startGame() {
 
   hand = [];
   enemyHand = [];
   gameOver = false;
-  playerTurn = true;
-  turnCount = 0;
-  melatoninStack = 0;
 
   for (let i = 0; i < 5; i++) {
-    drawCard(hand);
-    drawCard(enemyHand);
+    draw(hand);
+    draw(enemyHand);
   }
 
-  renderHand();
+  render();
   renderEnemy();
 
-  showSubtitle("Digo is watching...");
+  show("Digo is watching...");
 }
 
-initGame();
+startGame();
 
 //////////////////////////
-// 🎲 DRAW SYSTEM (FIXED)
+// DRAW SYSTEM
 //////////////////////////
 
-function weightedDraw() {
-
-  let pool = [];
-
-  for (let card of cardPool) {
-
-    let chance = 1 / (card.rarity || 1);
-
-    // 💀 DIE RARITY CONTROL (1/35 FEELING)
-    if (card.effect === "death") {
-
-      if (turnCount < 5) chance *= 1.3;
-      else if (turnCount < 10) chance *= 0.9;
-      else chance *= 0.6;
-    }
-
-    if (Math.random() < chance) {
-      pool.push(card);
-    }
-  }
-
-  if (pool.length === 0) {
-    pool = cardPool.filter(c => c.effect !== "death");
-  }
-
-  return structuredClone(pool[Math.floor(Math.random() * pool.length)]);
-}
-
-function drawCard(target) {
+function draw(target) {
 
   if (gameOver) return;
 
-  let card = weightedDraw();
+  let card = deck[Math.floor(Math.random() * deck.length)];
+
+  if (target === hand && hand.length >= MAX_HAND) return;
+
   target.push(card);
 
-  if (target === hand) renderHand();
+  if (target === hand) render();
   if (target === enemyHand) renderEnemy();
 }
 
 //////////////////////////
-// 🃏 RENDER HAND
+// RENDER HAND
 //////////////////////////
 
-function renderHand() {
+function render() {
 
   handDiv.innerHTML = "";
 
-  hand.forEach((card, index) => {
+  hand.forEach((card, i) => {
 
     let img = document.createElement("img");
     img.src = card.image;
-    img.classList.add("card");
-    img.title = card.name;
+    img.className = "card";
 
-    img.onclick = () => playCard(index);
+    img.onclick = () => play(i);
 
     handDiv.appendChild(img);
   });
 }
-
-//////////////////////////
-// 🤖 RENDER ENEMY
-//////////////////////////
 
 function renderEnemy() {
 
   enemyDiv.innerHTML = "";
 
   enemyHand.forEach(() => {
-    let div = document.createElement("div");
-    div.classList.add("enemyCard");
-    enemyDiv.appendChild(div);
+    let d = document.createElement("div");
+    d.className = "enemyCard";
+    enemyDiv.appendChild(d);
   });
 }
 
 //////////////////////////
-// 🎮 PLAY CARD
+// PLAY CARD
 //////////////////////////
 
-function playCard(index) {
+function play(i) {
 
   if (!playerTurn || gameOver) return;
 
-  let card = hand[index];
+  let card = hand.splice(i, 1)[0];
 
-  hand.splice(index, 1);
+  render();
 
-  renderHand();
+  showCard(card);
 
-  showPlayedCard(card);
-
-  resolveCard(card, hand);
-
-  checkWin();
+  resolve(card);
 
   endTurn();
 }
 
-//////////////////////////
-// 🧾 CENTER CARD
-//////////////////////////
+function showCard(card) {
 
-function showPlayedCard(card) {
-
-  playedCardArea.innerHTML = "";
+  playedArea.innerHTML = "";
 
   let img = document.createElement("img");
   img.src = card.image;
-  img.classList.add("card");
+  img.className = "card";
 
-  playedCardArea.appendChild(img);
+  playedArea.appendChild(img);
 }
 
 //////////////////////////
-// ⚙️ CARD LOGIC
+// GAME LOGIC
 //////////////////////////
 
-function resolveCard(card, target) {
+function resolve(card) {
 
-  // 💰 CHECK
+  if (card.effect !== "melatonin") {
+    melatoninStack = 0;
+  }
+
+  // 💰 CHECK FIXED
   if (card.effect === "money") {
-    showSubtitle("Check doubles your chaos");
-    drawCard(hand);
-    drawCard(hand);
-    drawCard(hand);
+    draw(hand);
+    draw(hand);
+    show("Check gives cards");
     return;
   }
 
-  // 🧠 WET FISH / STUN
-  if (card.effect === "stun") {
-    showSubtitle("Wet fish slap 🐟");
-    return;
-  }
+  // 🧀 CHEESE RANDOM
+  if (card.name === "Cheese") {
 
-  // 🧀 CHAOS CHEESE (NEW SYSTEM)
-  if (card.effect === "chaosCheese") {
+    let r = Math.random();
 
-    let roll = Math.random();
-
-    if (roll < 0.25) {
-      showSubtitle("Moldy cheese stuns enemy 🧀");
-      drawCard(enemyHand);
-    }
-
-    else if (roll < 0.5) {
-      showSubtitle("Cheese backfires 💀");
-      handleDeath(card, hand);
-    }
-
-    else if (roll < 0.75) {
-      showSubtitle("Cheese does nothing...");
-    }
-
-    else {
-      showSubtitle("Cheese evolves reality ???");
-      drawCard(hand);
-      drawCard(enemyHand);
-    }
+    if (r < 0.25) draw(enemyHand);
+    else if (r < 0.5) draw(hand);
+    else show("Cheese did something weird");
 
     return;
   }
 
-  // 😴 MELATONIN STACK SYSTEM
+  // 💊 MELATONIN FIXED
   if (card.effect === "melatonin") {
 
     melatoninStack++;
 
     if (melatoninStack >= 3) {
-      return endGame("Melatonin overdose 💀");
+      return endGame("Melatonin overdose");
     }
 
-    showSubtitle("You feel sleepy...");
+    show("You feel sleepy");
     return;
   }
 
   // 🪿 CHAOS
   if (card.effect === "chaos") {
-    showSubtitle("Goose distorts reality");
-
-    Math.random() < 0.5
-      ? drawCard(hand)
-      : drawCard(enemyHand);
-
+    Math.random() < 0.5 ? draw(hand) : draw(enemyHand);
     return;
   }
 
-  // 💀 DEATH SYSTEM (PLAYER HIT)
-  if (card.effect === "death" || card.effect === "chanceDeath") {
-
-    let died = handleDeath(card, hand);
-
-    if (died) {
-      endGame("💀 You died to " + card.name);
-    }
-
-    return;
-  }
-
-  // ⚔️ PIPE BOMB FIX (ATTACK ENEMY)
+  // 💥 PIPE BOMB FIXED (ENEMY TARGET)
   if (card.name === "Pipe Bomb") {
 
-    showSubtitle("Pipe Bomb launched 💥");
-
-    let died = handleDeath(card, enemyHand);
-
-    if (died) {
-      endGame("💀 Enemy got deleted by Pipe Bomb");
+    if (Math.random() < 0.5) {
+      return endGame("Enemy destroyed");
     }
 
+    show("Pipe Bomb missed");
+    return;
+  }
+
+  // ☠️ DEATH CARDS FIXED
+  if (card.effect === "death") {
+    return endGame("You died to " + card.name);
+  }
+
+  // ☠️ SUS USB FIXED
+  if (card.effect === "chanceDeath") {
+
+    if (Math.random() < 0.5) {
+      return endGame("Sus USB killed you");
+    }
+
+    show("You survived USB");
     return;
   }
 }
 
 //////////////////////////
-// ☠️ DEATH ENGINE
-//////////////////////////
-
-function handleDeath(card, target) {
-
-  let defuse = target.some(c => c.effect === "defuse");
-  let pokeball = target.some(c => c.effect === "chanceDefense");
-
-  if (defuse) {
-    removeCard(target, "defuse");
-    showSubtitle("Defuse blocked death");
-    return false;
-  }
-
-  if (pokeball && Math.random() < 0.7) {
-    removeCard(target, "chanceDefense");
-    showSubtitle("Pokeball saved you");
-    return false;
-  }
-
-  return true;
-}
-
-function removeCard(target, effect) {
-
-  let i = target.findIndex(c => c.effect === effect);
-
-  if (i !== -1) target.splice(i, 1);
-
-  renderHand();
-  renderEnemy();
-}
-
-//////////////////////////
-// 🔁 TURN SYSTEM (FIXED)
+// ENEMY TURN
 //////////////////////////
 
 function endTurn() {
 
   playerTurn = false;
 
-  turnCount++;
-
-  showSubtitle("Enemy thinking...");
-
-  setTimeout(enemyTurn, 900);
-}
-
-//////////////////////////
-// 🤖 ENEMY TURN
-//////////////////////////
-
-function enemyTurn() {
-
-  if (gameOver) return;
-
-  drawCard(enemyHand);
-
-  let index = Math.floor(Math.random() * enemyHand.length);
-  let card = enemyHand.splice(index, 1)[0];
-
-  renderEnemy();
-
-  showPlayedCard(card);
-
-  showSubtitle("Enemy played " + card.name);
-
-  if (card.effect === "death" || card.effect === "chanceDeath") {
-
-    let died = handleDeath(card, enemyHand);
-
-    if (died) {
-      return endGame("💀 Enemy died → YOU WIN");
-    }
-  }
-
-  checkWin();
-
   setTimeout(() => {
 
-    drawCard(hand);
-    renderHand();
+    draw(enemyHand);
 
-    playerTurn = true;
+    let card = enemyHand.splice(Math.floor(Math.random() * enemyHand.length), 1)[0];
 
-    showSubtitle("Your turn");
+    renderEnemy();
 
-  }, 900);
+    showCard(card);
+
+    resolve(card);
+
+    setTimeout(() => {
+
+      draw(hand);
+      render();
+
+      playerTurn = true;
+
+    }, 800);
+
+  }, 700);
 }
 
 //////////////////////////
-// 🏁 WIN CHECK
-//////////////////////////
-
-function checkWin() {
-
-  if (enemyHand.length === 0) {
-    endGame("Enemy out of cards → YOU WIN");
-  }
-
-  if (hand.length === 0) {
-    endGame("You out of cards → YOU LOSE");
-  }
-}
-
-//////////////////////////
-// 💀 END GAME (CLEAN RESET FIX)
+// END GAME (FIXED OVERLAY)
 //////////////////////////
 
 function endGame(msg) {
@@ -431,12 +284,6 @@ function endGame(msg) {
 
   gameOver = true;
 
-  handDiv.innerHTML = "";
-  enemyDiv.innerHTML = "";
-  playedCardArea.innerHTML = "";
-
-  document.body.style.background = "#2b0d0d";
-
   let overlay = document.createElement("div");
 
   overlay.style.position = "fixed";
@@ -444,24 +291,18 @@ function endGame(msg) {
   overlay.style.left = "0";
   overlay.style.width = "100%";
   overlay.style.height = "100%";
-
+  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.color = "white";
   overlay.style.display = "flex";
   overlay.style.flexDirection = "column";
   overlay.style.justifyContent = "center";
   overlay.style.alignItems = "center";
-
-  overlay.style.background = "rgba(0,0,0,0.75)";
-  overlay.style.color = "white";
   overlay.style.fontFamily = "Arial";
 
   overlay.innerHTML = `
     <h1>${msg}</h1>
-    <button onclick="location.reload()" style="padding:10px 20px; font-size:18px; cursor:pointer;">
-      Restart
-    </button>
+    <button onclick="location.reload()">Restart</button>
   `;
 
   document.body.appendChild(overlay);
-
-  showSubtitle("Game Over");
 }
