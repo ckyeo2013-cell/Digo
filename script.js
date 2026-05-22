@@ -32,7 +32,7 @@ function buildDeck() {
   // SAFE
   add({ name: "Chair", image: "assets/images/misc/chair.png", effect: "nothing" }, 8);
   add({ name: "Check", image: "assets/images/misc/check.png", effect: "money" }, 5);
-  add({ name: "Cheese", image: "assets/images/misc/cheese.png", effect: "chaosCheese" }, 5);
+  add({ name: "Cheese", image: "assets/images/misc/cheese.png", effect: "cheese" }, 5);
   add({ name: "Wet Fish", image: "assets/images/misc/wetFish.png", effect: "stun" }, 4);
 
   // CHAOS
@@ -44,14 +44,14 @@ function buildDeck() {
   add({ name: "Package Defuse", image: "assets/images/defense/package.png", effect: "defense" }, 3);
 
   // ATTACK
-  add({ name: "Pipe Bomb", image: "assets/images/attack/pipeBomb.png", effect: "attack" }, 2);
+  add({ name: "Pipe Bomb", image: "assets/images/attack/pipeBomb.png", effect: "pipe" }, 2);
 
-  // DIE / CHAOS CORE
+  // RARE DEATHS
   add({ name: "Digo", image: "assets/images/die/digo.png", effect: "digo" }, 1);
   add({ name: "Lego Brick", image: "assets/images/die/legoBrick.png", effect: "lego" }, 1);
   add({ name: "Sus USB", image: "assets/images/die/susUsb.png", effect: "usb" }, 1);
 
-  // MELATONIN (NOW RELIABLE)
+  // MELATONIN (FIXED)
   add({ name: "Melatonin", image: "assets/images/misc/melatonin.png", effect: "melatonin" }, 4);
 
   return deck;
@@ -60,7 +60,7 @@ function buildDeck() {
 let deck = buildDeck();
 
 //////////////////////////
-// START GAME
+// START
 //////////////////////////
 
 function startGame() {
@@ -81,8 +81,7 @@ function startGame() {
 
   render();
   renderEnemy();
-
-  show("Digo is watching...");
+  show("Digo watches the board...");
 
 }
 
@@ -96,19 +95,17 @@ function drawCard(target) {
 
   if (gameOver) return;
 
-  let card =
-    structuredClone(deck[Math.floor(Math.random() * deck.length)]);
+  let card = structuredClone(deck[Math.floor(Math.random() * deck.length)]);
 
-  // hand limit pressure
   if (target === hand && hand.length >= MAX_HAND) {
     discardRandom(hand);
-    show("Hand overload — card lost");
+    log("Hand overloaded — card lost");
   }
 
   target.push(card);
 
-  if (target === hand) render();
-  if (target === enemyHand) renderEnemy();
+  render();
+  renderEnemy();
 
 }
 
@@ -152,42 +149,56 @@ function resolve(card, owner) {
   if (card.effect === "money") {
     drawCard(hand);
     drawCard(hand);
-    show("Check pays out");
+    log("Check paid out — +2 cards");
     return;
   }
 
   //////////////////////
-  // CHEESE RNG
+  // CHEESE (FIXED FEEDBACK)
   //////////////////////
-  if (card.name === "Cheese") {
+  if (card.effect === "cheese") {
 
     let r = Math.random();
 
-    if (r < 0.2) drawCard(enemyHand);
-    else if (r < 0.4) drawCard(hand);
-    else if (r < 0.6) enemyStunned = true;
-    else if (r < 0.8) discardRandom(hand);
-    else show("Cheese did nothing... suspicious");
+    if (r < 0.25) {
+      drawCard(enemyHand);
+      log("Cheese helped enemy");
+    }
+
+    else if (r < 0.5) {
+      drawCard(hand);
+      log("Cheese helped you");
+    }
+
+    else if (r < 0.75) {
+      enemyStunned = true;
+      log("Cheese stunned enemy");
+    }
+
+    else {
+      discardRandom(hand);
+      log("Cheese backfired — you lost a card");
+    }
 
     return;
   }
 
   //////////////////////
-  // MELATONIN FIXED
+  // MELATONIN (FIXED + CLEAR)
   //////////////////////
   if (card.effect === "melatonin") {
 
     melatoninStack++;
 
-    show("Melatonin stack: " + melatoninStack);
+    log("Melatonin stack: " + melatoninStack);
 
     if (melatoninStack >= 3) {
       return endGame("Melatonin overdose");
     }
 
-    if (Math.random() < 0.25) {
+    if (Math.random() < 0.2) {
       discardRandom(hand);
-      show("You dropped a card from drowsiness");
+      log("Melatonin made you drop a card");
     }
 
     return;
@@ -198,7 +209,7 @@ function resolve(card, owner) {
   //////////////////////
   if (card.effect === "stun") {
     enemyStunned = true;
-    show("Enemy stunned");
+    log("Enemy stunned");
     return;
   }
 
@@ -211,54 +222,52 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // PIPE BOMB (RNG FIXED - YOUR REQUEST)
+  // PIPE BOMB (FIXED + CLEAN)
   //////////////////////
-  if (card.name === "Pipe Bomb") {
+  if (card.effect === "pipe") {
 
     let r = Math.random();
 
-    // 33% HIT ENEMY
     if (r < 0.33) {
 
       if (enemyHasDefense()) {
         removeEnemyDefense();
-        show("Enemy blocked Pipe Bomb");
+        log("Enemy blocked Pipe Bomb");
       } else {
-        return endGame("Pipe Bomb deleted enemy");
+        return endGame("Pipe Bomb destroyed enemy");
       }
 
       return;
     }
 
-    // 33% HIT PLAYER
     if (r < 0.66) {
 
       if (hasPlayerDefense()) {
         removePlayerDefense();
-        show("You blocked your own Pipe Bomb");
+        log("You blocked Pipe Bomb");
       } else {
-        return endGame("You got deleted by Pipe Bomb");
+        return endGame("Pipe Bomb destroyed you");
       }
 
       return;
     }
 
-    // 33% FAIL
-    show("Pipe Bomb malfunctioned");
+    log("Pipe Bomb failed");
+
     return;
   }
 
   //////////////////////
   // LEGO BRICK
   //////////////////////
-  if (card.name === "Lego Brick") {
+  if (card.effect === "lego") {
 
     let r = Math.random();
 
     if (r < 0.4) return endGame("Enemy stepped on Lego Brick");
     if (r < 0.8) return endGame("You stepped on Lego Brick");
 
-    show("Lego Brick did nothing");
+    log("Lego Brick did nothing");
 
     return;
   }
@@ -266,7 +275,7 @@ function resolve(card, owner) {
   //////////////////////
   // USB
   //////////////////////
-  if (card.name === "Sus USB") {
+  if (card.effect === "usb") {
 
     if (owner === "player") {
 
@@ -275,7 +284,7 @@ function resolve(card, owner) {
       }
 
       discardRandom(hand);
-      show("USB stole a card");
+      log("USB stole a card");
 
     }
 
@@ -283,11 +292,11 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // DIGO
+  // DIGO (CLEAN + FUN)
   //////////////////////
   if (card.effect === "digo") {
 
-    show("Digo bends reality");
+    log("Digo rewrites reality");
 
     let mode = Math.floor(Math.random() * 3);
 
@@ -299,7 +308,9 @@ function resolve(card, owner) {
         effect: "melatonin"
       }));
 
-    } else if (mode === 1) {
+    }
+
+    else if (mode === 1) {
 
       hand = hand.map(() => ({
         name: "Sus USB",
@@ -307,7 +318,9 @@ function resolve(card, owner) {
         effect: "usb"
       }));
 
-    } else {
+    }
+
+    else {
 
       discardRandom(hand);
 
@@ -319,13 +332,13 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // CLUTCH POKEBALL
+  // POKEBALL
   //////////////////////
   if (card.effect === "clutch") {
 
     if (Math.random() < 0.55) {
       drawCard(hand);
-      show("Pokeball saved you");
+      log("Pokeball saved you");
     } else {
       return endGame("Pokeball failed");
     }
@@ -347,7 +360,7 @@ function endTurn() {
 
     if (enemyStunned) {
       enemyStunned = false;
-      show("Enemy stunned");
+      log("Enemy skipped turn");
       drawCard(hand);
       render();
       playerTurn = true;
@@ -359,7 +372,7 @@ function endTurn() {
     let playable = enemyHand.filter(c => c.effect !== "usb");
 
     if (playable.length === 0) {
-      show("Enemy passes");
+      log("Enemy passes");
       drawCard(hand);
       render();
       playerTurn = true;
@@ -425,7 +438,9 @@ function renderEnemy() {
   enemyHand.forEach(() => {
 
     let d = document.createElement("div");
+
     d.className = "enemyCard";
+
     div.appendChild(d);
 
   });
@@ -441,7 +456,6 @@ function show(text) {
   let el = document.getElementById("sub");
 
   if (!el) {
-
     el = document.createElement("div");
     el.id = "sub";
 
@@ -456,11 +470,14 @@ function show(text) {
     el.style.borderRadius = "10px";
 
     document.body.appendChild(el);
-
   }
 
   el.innerText = text;
 
+}
+
+function log(text) {
+  show(text);
 }
 
 function showCard(card) {
@@ -479,7 +496,7 @@ function showCard(card) {
 }
 
 //////////////////////////
-// HELPERS (FIXED)
+// HELPERS
 //////////////////////////
 
 function enemyHasDefense() {
@@ -520,7 +537,7 @@ function endGame(msg) {
   overlay.style.width = "100%";
   overlay.style.height = "100%";
 
-  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.background = "rgba(0,0,0,0.9)";
   overlay.style.color = "white";
   overlay.style.display = "flex";
   overlay.style.flexDirection = "column";
@@ -537,7 +554,7 @@ function endGame(msg) {
 }
 
 //////////////////////////
-// INIT
+// START GAME
 //////////////////////////
 
 for (let i = 0; i < 5; i++) {
