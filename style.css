@@ -1,311 +1,114 @@
-/* WHOLE PAGE */
-
 body {
   margin: 0;
-  font-family: Arial;
-  background: #1b5e20;
-  overflow-x: hidden;
-}
+  font-family: Arial, sans-serif;
 
-/* HOME PAGE */
-
-.homeContainer {
+  /* softer fun gradient background */
+  background: linear-gradient(135deg, #1e3a8a, #16a34a);
+  color: white;
 
   display: flex;
   flex-direction: column;
-
   align-items: center;
-
-  padding: 40px 20px;
 
   min-height: 100vh;
 }
 
 /* TITLE */
-
 h1 {
-
+  text-align: center;
   margin-top: 20px;
-
-  color: white;
-
-  font-size: 70px;
-
-  text-shadow: 0 0 15px rgba(0,0,0,0.5);
+  font-size: 32px;
 }
 
-/* SUBTEXT */
-
-.explain {
-
-  font-size: 20px;
-
-  color: white;
-
-  font-weight: bold;
-
-  text-align: center;
-
+/* GAME BOARD AREA (THIS IS THE KEY FIX) */
+#gameBoard {
+  width: 90%;
   max-width: 900px;
 
-  line-height: 1.6;
-}
-
-/* BUTTONS */
-
-.play-button {
-
-  margin-top: 25px;
-
-  padding: 18px 40px;
-
-  font-size: 24px;
-
-  border: none;
-
-  border-radius: 15px;
-
-  cursor: pointer;
-
-  background: #0066cc;
-
-  color: white;
-
-  transition: 0.2s;
-
-  box-shadow: 0 0 15px rgba(0,0,0,0.4);
-}
-
-.play-button:hover {
-
-  background: #0088ff;
-
-  transform: scale(1.05);
-}
-
-/* LORE BOX */
-
-.loreBox {
-
-  margin-top: 50px;
-
-  max-width: 800px;
-
-  width: 90%;
-
-  background: rgba(0,0,0,0.25);
-
-  padding: 30px;
-
+  background: rgba(0, 100, 0, 0.25);
+  border: 3px solid rgba(255,255,255,0.2);
   border-radius: 20px;
 
-  color: white;
-
-  line-height: 1.8;
-
-  font-size: 20px;
-
-  text-align: left;
-
-  box-shadow: 0 0 20px rgba(0,0,0,0.4);
-}
-
-.loreBox h2 {
-
-  text-align: center;
-
-  font-size: 42px;
-
-  margin-bottom: 25px;
-}
-
-.loreBox p {
-
-  margin-bottom: 20px;
-}
-
-/* GAME CONTAINER */
-
-#gameContainer {
-
-  display: flex;
-
-  flex-direction: column;
-
-  height: 100vh;
-}
-
-/* ENEMY AREA */
-
-#enemyArea {
-
-  height: 20%;
-
-  text-align: center;
-
-  color: white;
-}
-
-/* TABLE */
-
-#tableArea {
-
-  flex: 1;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  gap: 50px;
-}
-
-/* PLAYER AREA */
-
-#playerArea {
-
-  height: 30%;
-
-  text-align: center;
-
-  color: white;
-
-  overflow-x: auto;
-}
-
-/* CARD PILES */
-
-#deckPile,
-#playedCard,
-#discardPile {
-
-  width: 120px;
-
-  height: 170px;
-
-  background: #eeeeee;
-
-  border-radius: 12px;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  font-weight: bold;
-
-  color: black;
-
-  box-shadow: 0 0 15px rgba(0,0,0,0.4);
-}
-
-/* HAND */
-
-#hand {
-
-  display: flex;
-
-  justify-content: flex-start;
-
-  gap: 10px;
-
+  padding: 20px;
   margin-top: 20px;
 
-  overflow-x: auto;
-
-  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
 }
 
-/* SCROLLBAR */
-
-#hand::-webkit-scrollbar {
-
-  height: 10px;
-}
-
-#hand::-webkit-scrollbar-thumb {
-
-  background: rgba(255,255,255,0.3);
-
-  border-radius: 10px;
+/* HAND + ENEMY + PLAYED AREA CENTERED */
+#hand,
+.enemyCards,
+#playedCard {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 /* CARDS */
-
 .card {
-
-  width: 100px;
-
+  width: 90px;
   border-radius: 10px;
-
-  transition: transform 0.2s;
-
   cursor: pointer;
+  transition: 0.2s;
 
-  flex-shrink: 0;
-
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  background: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 
 .card:hover {
-
-  transform: translateY(-10px) scale(1.05);
+  transform: scale(1.08);
 }
 
 /* ENEMY CARDS */
-
-.enemyCards {
-
-  display: flex;
-
-  justify-content: center;
-
-  gap: 10px;
-}
-
 .enemyCard {
+  width: 60px;
+  height: 90px;
+  border-radius: 8px;
 
-  width: 80px;
-
-  height: 120px;
-
-  background: darkred;
-
-  border-radius: 10px;
-
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  background: rgba(255,255,255,0.25);
 }
 
-/* MOBILE FIXES */
+/* TEXT CENTER FIX */
+#sub {
+  text-align: center;
+  margin-top: 10px;
+  max-width: 80%;
+}
 
-@media (max-width: 700px) {
+/* BUTTONS */
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+
+  background: white;
+  color: black;
+
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .card {
+    width: 70px;
+  }
+
+  .enemyCard {
+    width: 50px;
+    height: 70px;
+  }
 
   h1 {
-
-    font-size: 48px;
-  }
-
-  .play-button {
-
-    width: 80%;
-
-    font-size: 20px;
-  }
-
-  .lore {
-
-    font-size: 16px;
-  }
-
-  #tableArea {
-
-    gap: 15px;
-  }
-
-  .card {
-
-    width: 80px;
+    font-size: 24px;
   }
 }
