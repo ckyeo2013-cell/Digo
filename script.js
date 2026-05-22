@@ -22,98 +22,31 @@ function buildDeck() {
   let deck = [];
 
   function add(card, count) {
-
     for (let i = 0; i < count; i++) {
       deck.push(structuredClone(card));
     }
-
   }
 
-  //////////////////////
   // SAFE
-  //////////////////////
+  add({ name: "Chair", image: "assets/images/misc/chair.png", effect: "nothing" }, 10);
+  add({ name: "Check", image: "assets/images/misc/check.png", effect: "money" }, 6);
+  add({ name: "Cheese", image: "assets/images/misc/cheese.png", effect: "chaosCheese" }, 5);
+  add({ name: "Wet Fish", image: "assets/images/misc/wetFish.png", effect: "stun" }, 5);
 
-  add({
-    name: "Chair",
-    image: "assets/images/misc/chair.png",
-    effect: "nothing"
-  }, 10);
-
-  add({
-    name: "Check",
-    image: "assets/images/misc/check.png",
-    effect: "money"
-  }, 7);
-
-  add({
-    name: "Cheese",
-    image: "assets/images/misc/cheese.png",
-    effect: "chaosCheese"
-  }, 6);
-
-  add({
-    name: "Wet Fish",
-    image: "assets/images/misc/wetFish.png",
-    effect: "stun"
-  }, 6);
-
-  //////////////////////
   // CHAOS
-  //////////////////////
+  add({ name: "Crazy Pokeball", image: "assets/images/crazy/crazy.png", effect: "chanceDefense" }, 4);
+  add({ name: "Radioactive Goose", image: "assets/images/crazy/goose.png", effect: "chaos" }, 3);
+  add({ name: "U-Haul", image: "assets/images/crazy/uHaul.png", effect: "turnSwap" }, 3);
 
-  add({
-    name: "Crazy Pokeball",
-    image: "assets/images/crazy/crazy.png",
-    effect: "chanceDefense"
-  }, 4);
-
-  add({
-    name: "Radioactive Goose",
-    image: "assets/images/crazy/goose.png",
-    effect: "chaos"
-  }, 3);
-
-  add({
-    name: "U-Haul",
-    image: "assets/images/crazy/uHaul.png",
-    effect: "turnSwap"
-  }, 3);
-
-  //////////////////////
   // DEFENSE
-  //////////////////////
+  add({ name: "Package Defuse", image: "assets/images/defense/package.png", effect: "defense" }, 4);
 
-  add({
-    name: "Package Defuse",
-    image: "assets/images/defense/package.png",
-    effect: "defense"
-  }, 4);
-
-  //////////////////////
   // ATTACK
-  //////////////////////
+  add({ name: "Pipe Bomb", image: "assets/images/attack/pipeBomb.png", effect: "attack" }, 2);
 
-  add({
-    name: "Pipe Bomb",
-    image: "assets/images/attack/pipeBomb.png",
-    effect: "attack"
-  }, 2);
-
-  //////////////////////
   // DEATH (RARE)
-  //////////////////////
-
-  add({
-    name: "Lego Brick",
-    image: "assets/images/die/legoBrick.png",
-    effect: "death"
-  }, 1);
-
-  add({
-    name: "Sus USB",
-    image: "assets/images/die/susUsb.png",
-    effect: "chanceDeath"
-  }, 1);
+  add({ name: "Lego Brick", image: "assets/images/die/legoBrick.png", effect: "death" }, 1);
+  add({ name: "Sus USB", image: "assets/images/die/susUsb.png", effect: "chanceDeath" }, 1);
 
   return deck;
 }
@@ -135,10 +68,8 @@ function startGame() {
   melatoninStack = 0;
 
   for (let i = 0; i < 5; i++) {
-
     drawCard(hand);
     drawCard(enemyHand);
-
   }
 
   render();
@@ -160,7 +91,6 @@ function drawCard(target) {
 
   let card = smartDraw();
 
-  // max hand size
   if (target === hand && hand.length >= 7) return;
 
   target.push(card);
@@ -172,13 +102,30 @@ function drawCard(target) {
 
 function smartDraw() {
 
-  // TRUE RANDOM FROM DECK
+  let r = Math.random();
 
-  let randomIndex =
-    Math.floor(Math.random() * deck.length);
+  if (r < 0.05) return pick("death");
+  if (r < 0.15) return pick("attack");
+  if (r < 0.30) return pick("defense");
+  if (r < 0.60) return pick("chaos");
 
-  return structuredClone(deck[randomIndex]);
+  return pick("normal");
+}
 
+function pick(type) {
+
+  let pool = deck.filter(c => {
+
+    if (type === "death") return c.effect === "death" || c.effect === "chanceDeath";
+    if (type === "attack") return c.effect === "attack";
+    if (type === "defense") return c.effect === "defense";
+    if (type === "chaos") return c.effect === "chaos" || c.effect === "chanceDefense" || c.effect === "turnSwap";
+
+    return c.effect === "nothing" || c.effect === "money" || c.effect === "chaosCheese";
+
+  });
+
+  return structuredClone(pool[Math.floor(Math.random() * pool.length)]);
 }
 
 //////////////////////////
@@ -189,34 +136,9 @@ function playCard(i) {
 
   if (!playerTurn || gameOver) return;
 
-  let card = hand[i];
-
-  //////////////////////
-  // DIGO + USB
-  //////////////////////
-
-  if (card.name === "Digo") {
-
-    show("Digo refuses to move.");
-
-    return;
-  }
-
-  if (card.name === "Sus USB") {
-
-    show("The USB is staring at you.");
-
-    return;
-  }
-
-  //////////////////////
-  // REMOVE CARD
-  //////////////////////
-
-  hand.splice(i, 1);
+  let card = hand.splice(i, 1)[0];
 
   render();
-
   showCard(card);
 
   resolve(card, "player");
@@ -226,10 +148,42 @@ function playCard(i) {
 }
 
 //////////////////////////
-// CARD LOGIC
+// RESOLVE CARDS
 //////////////////////////
 
 function resolve(card, owner) {
+
+  // RESET MELATONIN
+  if (card.name !== "Melatonin") {
+    melatoninStack = 0;
+  }
+
+  //////////////////////
+  // CHECK
+  //////////////////////
+
+  if (card.effect === "money") {
+    drawCard(hand);
+    drawCard(hand);
+    show("Check gave you cards");
+    return;
+  }
+
+  //////////////////////
+  // CHEESE
+  //////////////////////
+
+  if (card.name === "Cheese") {
+
+    let r = Math.random();
+
+    if (r < 0.25) drawCard(enemyHand);
+    else if (r < 0.5) drawCard(hand);
+    else if (r < 0.75) enemyStunned = true;
+    else show("Cheese did something unexplainable");
+
+    return;
+  }
 
   //////////////////////
   // MELATONIN
@@ -248,95 +202,12 @@ function resolve(card, owner) {
     return;
   }
 
-  if (card.name !== "Melatonin") {
-    melatoninStack = 0;
-  }
-
   //////////////////////
-  // CHECK
-  //////////////////////
-
-  if (card.effect === "money") {
-
-    drawCard(owner === "player" ? hand : enemyHand);
-    drawCard(owner === "player" ? hand : enemyHand);
-
-    show("The check somehow generated more checks.");
-
-    return;
-  }
-
-  //////////////////////
-  // CHEESE
-  //////////////////////
-
-  if (card.name === "Cheese") {
-
-    let r = Math.random();
-
-    if (r < 0.25) {
-
-      drawCard(hand);
-
-      show("The cheese healed your soul.");
-
-    } else if (r < 0.5) {
-
-      drawCard(enemyHand);
-
-      show("The cheese became violent.");
-
-    } else if (r < 0.75) {
-
-      enemyStunned = true;
-
-      show("The mold stunned the enemy.");
-
-    } else {
-
-      show("The cheese observed reality silently.");
-
-    }
-
-    return;
-  }
-
-  //////////////////////
-  // WET FISH
-  //////////////////////
-
-  if (card.name === "Wet Fish") {
-
-    enemyStunned = true;
-
-    show("Enemy got slapped with a wet fish.");
-
-    return;
-  }
-
-  //////////////////////
-  // GOOSE
+  // CHAOS
   //////////////////////
 
   if (card.effect === "chaos") {
-
-    Math.random() < 0.5
-      ? drawCard(hand)
-      : drawCard(enemyHand);
-
-    show("Radioactive Goose caused problems.");
-
-    return;
-  }
-
-  //////////////////////
-  // UHAUL
-  //////////////////////
-
-  if (card.effect === "turnSwap") {
-
-    show("U-Haul rearranged the timeline.");
-
+    Math.random() < 0.5 ? drawCard(hand) : drawCard(enemyHand);
     return;
   }
 
@@ -346,24 +217,11 @@ function resolve(card, owner) {
 
   if (card.name === "Pipe Bomb") {
 
-    if (owner === "player") {
-
-      if (enemyHasDefense()) {
-
-        removeEnemyDefense();
-
-        moveToGameArea(card);
-
-        show("Enemy blocked the Pipe Bomb.");
-
-      } else {
-
-        return endGame("Enemy exploded.");
-
-      }
-
+    if (Math.random() < 0.5) {
+      return endGame("Enemy got deleted by Pipe Bomb");
     }
 
+    show("Pipe Bomb missed");
     return;
   }
 
@@ -373,75 +231,48 @@ function resolve(card, owner) {
 
   if (card.name === "Lego Brick") {
 
-    if (owner === "player") {
+    if (Math.random() < 0.5) {
+      return endGame("Enemy stepped on Lego Brick");
+    }
 
-      if (enemyHasDefense()) {
+    show("Lego Brick failed");
+    return;
+  }
 
-        removeEnemyDefense();
+  //////////////////////
+  // SUS USB FIXED
+  //////////////////////
 
-        moveToGameArea(card);
+  if (card.name === "Sus USB") {
 
-        show("Enemy survived Lego Brick.");
+    show("The USB is staring at you...");
 
-      } else {
+    let roll = Math.random();
 
-        return endGame("Enemy stepped on Lego Brick.");
+    if (roll < 0.5) {
 
-      }
+      setTimeout(() => {
+        endGame("Sus USB corrupted your system");
+      }, 800);
+
+    } else {
+
+      setTimeout(() => {
+        show("You survived the USB. It is still watching.");
+      }, 600);
 
     }
 
     return;
   }
 
-}
+  //////////////////////
+  // DEATH GENERIC
+  //////////////////////
 
-//////////////////////////
-// DEFENSE SYSTEM
-//////////////////////////
-
-function enemyHasDefense() {
-
-  return enemyHand.some(c =>
-    c.effect === "defense"
-  );
-
-}
-
-function removeEnemyDefense() {
-
-  let i = enemyHand.findIndex(c =>
-    c.effect === "defense"
-  );
-
-  if (i !== -1) {
-
-    enemyHand.splice(i, 1);
-
-    renderEnemy();
-
+  if (card.effect === "death") {
+    return endGame("Killed by " + card.name);
   }
-
-}
-
-//////////////////////////
-// GAME AREA
-//////////////////////////
-
-function moveToGameArea(card) {
-
-  let area =
-    document.getElementById("playedCard");
-
-  area.innerHTML = "";
-
-  let img = document.createElement("img");
-
-  img.src = card.image;
-
-  img.className = "card";
-
-  area.appendChild(img);
 
 }
 
@@ -455,88 +286,43 @@ function endTurn() {
 
   setTimeout(() => {
 
-    //////////////////////
-    // STUN CHECK
-    //////////////////////
-
     if (enemyStunned) {
-
-      show("Enemy is stunned.");
-
       enemyStunned = false;
-
+      show("Enemy stunned");
       drawCard(hand);
-
       render();
-
       playerTurn = true;
-
       return;
     }
-
-    //////////////////////
-    // ENEMY DRAW
-    //////////////////////
 
     drawCard(enemyHand);
 
-    //////////////////////
-    // FILTER PLAYABLE
-    //////////////////////
-
-    let playable =
-      enemyHand.filter(card =>
-
-        card.effect !== "death" &&
-        card.effect !== "chanceDeath"
-
-      );
-
-    //////////////////////
-    // PASS TURN
-    //////////////////////
+    let playable = enemyHand.filter(c =>
+      c.effect !== "death" &&
+      c.effect !== "chanceDeath"
+    );
 
     if (playable.length === 0) {
-
-      show("Enemy passed.");
-
+      show("Enemy passed");
       drawCard(hand);
-
       render();
-
       playerTurn = true;
-
       return;
     }
 
-    //////////////////////
-    // PLAY RANDOM CARD
-    //////////////////////
+    let card = playable[Math.floor(Math.random() * playable.length)];
 
-    let enemyPlay =
-      playable[Math.floor(Math.random() * playable.length)];
-
-    enemyHand.splice(
-      enemyHand.indexOf(enemyPlay),
-      1
-    );
+    enemyHand.splice(enemyHand.indexOf(card), 1);
 
     renderEnemy();
+    showCard(card);
 
-    showCard(enemyPlay);
-
-    resolve(enemyPlay, "enemy");
-
-    //////////////////////
-    // RETURN TURN
-    //////////////////////
+    resolve(card, "enemy");
 
     setTimeout(() => {
 
       drawCard(hand);
-
       render();
-
       playerTurn = true;
 
     }, 700);
@@ -546,13 +332,12 @@ function endTurn() {
 }
 
 //////////////////////////
-// RENDER PLAYER
+// RENDER
 //////////////////////////
 
 function render() {
 
-  let div =
-    document.getElementById("hand");
+  let div = document.getElementById("hand");
 
   div.innerHTML = "";
 
@@ -574,14 +359,9 @@ function render() {
 
 }
 
-//////////////////////////
-// RENDER ENEMY
-//////////////////////////
-
 function renderEnemy() {
 
-  let div =
-    document.querySelector(".enemyCards");
+  let div = document.querySelector(".enemyCards");
 
   div.innerHTML = "";
 
@@ -598,13 +378,12 @@ function renderEnemy() {
 }
 
 //////////////////////////
-// UI TEXT
+// UI
 //////////////////////////
 
 function show(text) {
 
-  let el =
-    document.getElementById("sub");
+  let el = document.getElementById("sub");
 
   if (!el) {
 
@@ -616,13 +395,9 @@ function show(text) {
     el.style.bottom = "20px";
     el.style.left = "50%";
     el.style.transform = "translateX(-50%)";
-
     el.style.color = "white";
-
     el.style.background = "rgba(0,0,0,0.7)";
-
     el.style.padding = "10px 20px";
-
     el.style.borderRadius = "10px";
 
     document.body.appendChild(el);
@@ -633,14 +408,9 @@ function show(text) {
 
 }
 
-//////////////////////////
-// SHOW CARD
-//////////////////////////
-
 function showCard(card) {
 
-  let area =
-    document.getElementById("playedCard");
+  let area = document.getElementById("playedCard");
 
   area.innerHTML = "";
 
@@ -664,37 +434,23 @@ function endGame(msg) {
 
   gameOver = true;
 
-  let overlay =
-    document.createElement("div");
+  let overlay = document.createElement("div");
 
   overlay.style.position = "fixed";
   overlay.style.top = "0";
   overlay.style.left = "0";
-
   overlay.style.width = "100%";
   overlay.style.height = "100%";
-
-  overlay.style.background =
-    "rgba(0,0,0,0.85)";
-
+  overlay.style.background = "rgba(0,0,0,0.85)";
   overlay.style.display = "flex";
-
   overlay.style.flexDirection = "column";
-
   overlay.style.justifyContent = "center";
-
   overlay.style.alignItems = "center";
-
   overlay.style.color = "white";
-
-  overlay.style.fontFamily = "Arial";
 
   overlay.innerHTML = `
     <h1>${msg}</h1>
-
-    <button onclick="location.reload()">
-      Restart
-    </button>
+    <button onclick="location.reload()">Restart</button>
   `;
 
   document.body.appendChild(overlay);
@@ -702,37 +458,13 @@ function endGame(msg) {
 }
 
 //////////////////////////
-// DIGO STARE EFFECT
+// START
 //////////////////////////
 
-setInterval(() => {
+for (let i = 0; i < 5; i++) {
+  drawCard(hand);
+  drawCard(enemyHand);
+}
 
-  if (Math.random() < 0.12 && !gameOver) {
-
-    let img = document.createElement("img");
-
-    img.src = "assets/images/die/digo.png";
-
-    img.style.position = "fixed";
-
-    img.style.bottom = "10px";
-
-    img.style.right = "10px";
-
-    img.style.width = "90px";
-
-    img.style.opacity = "0.35";
-
-    img.style.pointerEvents = "none";
-
-    document.body.appendChild(img);
-
-    setTimeout(() => {
-
-      img.remove();
-
-    }, 2000);
-
-  }
-
-}, 4000);
+render();
+renderEnemy();
