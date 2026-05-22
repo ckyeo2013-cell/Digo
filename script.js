@@ -13,9 +13,6 @@ let enemyHand = [];
 let melatoninStack = 0;
 let enemyStunned = false;
 
-// anti-bad-luck system
-let lastDraws = [];
-
 //////////////////////////
 // DECK BUILDER
 //////////////////////////
@@ -25,37 +22,45 @@ function buildDeck() {
   let deck = [];
 
   function add(card, count) {
+
     for (let i = 0; i < count; i++) {
       deck.push(structuredClone(card));
     }
+
   }
 
+  //////////////////////
   // SAFE
+  //////////////////////
+
   add({
     name: "Chair",
     image: "assets/images/misc/chair.png",
     effect: "nothing"
-  }, 8);
+  }, 10);
 
   add({
     name: "Check",
     image: "assets/images/misc/check.png",
     effect: "money"
-  }, 6);
+  }, 7);
 
   add({
     name: "Cheese",
     image: "assets/images/misc/cheese.png",
     effect: "chaosCheese"
-  }, 5);
+  }, 6);
 
   add({
     name: "Wet Fish",
     image: "assets/images/misc/wetFish.png",
     effect: "stun"
-  }, 5);
+  }, 6);
 
+  //////////////////////
   // CHAOS
+  //////////////////////
+
   add({
     name: "Crazy Pokeball",
     image: "assets/images/crazy/crazy.png",
@@ -74,26 +79,29 @@ function buildDeck() {
     effect: "turnSwap"
   }, 3);
 
+  //////////////////////
   // DEFENSE
+  //////////////////////
+
   add({
     name: "Package Defuse",
     image: "assets/images/defense/package.png",
     effect: "defense"
   }, 4);
 
+  //////////////////////
   // ATTACK
+  //////////////////////
+
   add({
     name: "Pipe Bomb",
     image: "assets/images/attack/pipeBomb.png",
     effect: "attack"
-  }, 3);
+  }, 2);
 
-  // DEATH (VERY RARE)
-  add({
-    name: "Digo",
-    image: "assets/images/die/digo.png",
-    effect: "death"
-  }, 1);
+  //////////////////////
+  // DEATH (RARE)
+  //////////////////////
 
   add({
     name: "Lego Brick",
@@ -136,7 +144,8 @@ function startGame() {
   render();
   renderEnemy();
 
-  show("Digo is watching...");
+  show("Digo is watching.");
+
 }
 
 startGame();
@@ -151,17 +160,6 @@ function drawCard(target) {
 
   let card = smartDraw();
 
-  lastDraws.push(card.effect);
-
-  if (lastDraws.length > 3) {
-    lastDraws.shift();
-  }
-
-  // anti-death streak
-  if (isDeathStreak()) {
-    card = getSafeCard();
-  }
-
   // max hand size
   if (target === hand && hand.length >= 7) return;
 
@@ -169,76 +167,18 @@ function drawCard(target) {
 
   if (target === hand) render();
   if (target === enemyHand) renderEnemy();
+
 }
 
 function smartDraw() {
 
-  let r = Math.random();
+  // TRUE RANDOM FROM DECK
 
-  // death chance LOWERED HARD
-  if (r < 0.035) return pick("death");
+  let randomIndex =
+    Math.floor(Math.random() * deck.length);
 
-  if (r < 0.13) return pick("attack");
+  return structuredClone(deck[randomIndex]);
 
-  if (r < 0.28) return pick("defense");
-
-  if (r < 0.52) return pick("chaos");
-
-  return pick("normal");
-}
-
-function pick(type) {
-
-  let pool = deck.filter(c => {
-
-    if (type === "death") {
-      return c.effect === "death" ||
-             c.effect === "chanceDeath";
-    }
-
-    if (type === "attack") {
-      return c.effect === "attack";
-    }
-
-    if (type === "defense") {
-      return c.effect === "defense";
-    }
-
-    if (type === "chaos") {
-      return c.effect === "chaos" ||
-             c.effect === "chanceDefense" ||
-             c.effect === "turnSwap";
-    }
-
-    return c.effect === "nothing" ||
-           c.effect === "money" ||
-           c.effect === "chaosCheese" ||
-           c.effect === "stun";
-  });
-
-  return structuredClone(
-    pool[Math.floor(Math.random() * pool.length)]
-  );
-}
-
-function getSafeCard() {
-
-  let safe = deck.filter(c =>
-    c.effect !== "death" &&
-    c.effect !== "chanceDeath"
-  );
-
-  return structuredClone(
-    safe[Math.floor(Math.random() * safe.length)]
-  );
-}
-
-function isDeathStreak() {
-
-  return lastDraws.filter(e =>
-    e === "death" ||
-    e === "chanceDeath"
-  ).length >= 2;
 }
 
 //////////////////////////
@@ -251,7 +191,10 @@ function playCard(i) {
 
   let card = hand[i];
 
-  // DIGO + USB cannot be played
+  //////////////////////
+  // DIGO + USB
+  //////////////////////
+
   if (card.name === "Digo") {
 
     show("Digo refuses to move.");
@@ -266,6 +209,10 @@ function playCard(i) {
     return;
   }
 
+  //////////////////////
+  // REMOVE CARD
+  //////////////////////
+
   hand.splice(i, 1);
 
   render();
@@ -275,6 +222,7 @@ function playCard(i) {
   resolve(card, "player");
 
   endTurn();
+
 }
 
 //////////////////////////
@@ -313,7 +261,7 @@ function resolve(card, owner) {
     drawCard(owner === "player" ? hand : enemyHand);
     drawCard(owner === "player" ? hand : enemyHand);
 
-    show("Check somehow generated more cards");
+    show("The check somehow generated more checks.");
 
     return;
   }
@@ -330,23 +278,23 @@ function resolve(card, owner) {
 
       drawCard(hand);
 
-      show("The cheese was nutritious");
+      show("The cheese healed your soul.");
 
     } else if (r < 0.5) {
 
       drawCard(enemyHand);
 
-      show("The cheese became hostile");
+      show("The cheese became violent.");
 
     } else if (r < 0.75) {
 
       enemyStunned = true;
 
-      show("Mold stunned the enemy");
+      show("The mold stunned the enemy.");
 
     } else {
 
-      show("The cheese observed reality");
+      show("The cheese observed reality silently.");
 
     }
 
@@ -354,14 +302,14 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // FISH
+  // WET FISH
   //////////////////////
 
   if (card.name === "Wet Fish") {
 
     enemyStunned = true;
 
-    show("Enemy got slapped by wet fish");
+    show("Enemy got slapped with a wet fish.");
 
     return;
   }
@@ -376,7 +324,7 @@ function resolve(card, owner) {
       ? drawCard(hand)
       : drawCard(enemyHand);
 
-    show("Radioactive Goose caused problems");
+    show("Radioactive Goose caused problems.");
 
     return;
   }
@@ -387,7 +335,7 @@ function resolve(card, owner) {
 
   if (card.effect === "turnSwap") {
 
-    show("U-Haul rearranged reality");
+    show("U-Haul rearranged the timeline.");
 
     return;
   }
@@ -406,11 +354,11 @@ function resolve(card, owner) {
 
         moveToGameArea(card);
 
-        show("Enemy blocked Pipe Bomb");
+        show("Enemy blocked the Pipe Bomb.");
 
       } else {
 
-        return endGame("Enemy exploded");
+        return endGame("Enemy exploded.");
 
       }
 
@@ -433,11 +381,11 @@ function resolve(card, owner) {
 
         moveToGameArea(card);
 
-        show("Enemy survived Lego Brick");
+        show("Enemy survived Lego Brick.");
 
       } else {
 
-        return endGame("Enemy stepped on Lego Brick");
+        return endGame("Enemy stepped on Lego Brick.");
 
       }
 
@@ -445,6 +393,7 @@ function resolve(card, owner) {
 
     return;
   }
+
 }
 
 //////////////////////////
@@ -456,6 +405,7 @@ function enemyHasDefense() {
   return enemyHand.some(c =>
     c.effect === "defense"
   );
+
 }
 
 function removeEnemyDefense() {
@@ -469,7 +419,9 @@ function removeEnemyDefense() {
     enemyHand.splice(i, 1);
 
     renderEnemy();
+
   }
+
 }
 
 //////////////////////////
@@ -478,7 +430,8 @@ function removeEnemyDefense() {
 
 function moveToGameArea(card) {
 
-  let area = document.getElementById("playedCard");
+  let area =
+    document.getElementById("playedCard");
 
   area.innerHTML = "";
 
@@ -489,6 +442,7 @@ function moveToGameArea(card) {
   img.className = "card";
 
   area.appendChild(img);
+
 }
 
 //////////////////////////
@@ -501,9 +455,13 @@ function endTurn() {
 
   setTimeout(() => {
 
+    //////////////////////
+    // STUN CHECK
+    //////////////////////
+
     if (enemyStunned) {
 
-      show("Enemy is stunned");
+      show("Enemy is stunned.");
 
       enemyStunned = false;
 
@@ -516,19 +474,31 @@ function endTurn() {
       return;
     }
 
+    //////////////////////
+    // ENEMY DRAW
+    //////////////////////
+
     drawCard(enemyHand);
 
-    // enemy cannot use death cards
-    let playable = enemyHand.filter(card =>
+    //////////////////////
+    // FILTER PLAYABLE
+    //////////////////////
 
-      card.effect !== "death" &&
-      card.effect !== "chanceDeath"
+    let playable =
+      enemyHand.filter(card =>
 
-    );
+        card.effect !== "death" &&
+        card.effect !== "chanceDeath"
+
+      );
+
+    //////////////////////
+    // PASS TURN
+    //////////////////////
 
     if (playable.length === 0) {
 
-      show("Enemy passed");
+      show("Enemy passed.");
 
       drawCard(hand);
 
@@ -538,6 +508,10 @@ function endTurn() {
 
       return;
     }
+
+    //////////////////////
+    // PLAY RANDOM CARD
+    //////////////////////
 
     let enemyPlay =
       playable[Math.floor(Math.random() * playable.length)];
@@ -553,6 +527,10 @@ function endTurn() {
 
     resolve(enemyPlay, "enemy");
 
+    //////////////////////
+    // RETURN TURN
+    //////////////////////
+
     setTimeout(() => {
 
       drawCard(hand);
@@ -564,6 +542,7 @@ function endTurn() {
     }, 700);
 
   }, 700);
+
 }
 
 //////////////////////////
@@ -572,7 +551,8 @@ function endTurn() {
 
 function render() {
 
-  let div = document.getElementById("hand");
+  let div =
+    document.getElementById("hand");
 
   div.innerHTML = "";
 
@@ -586,11 +566,12 @@ function render() {
 
     img.onclick = () => playCard(i);
 
-    // hover description
     img.title = card.name;
 
     div.appendChild(img);
+
   });
+
 }
 
 //////////////////////////
@@ -599,7 +580,8 @@ function render() {
 
 function renderEnemy() {
 
-  let div = document.querySelector(".enemyCards");
+  let div =
+    document.querySelector(".enemyCards");
 
   div.innerHTML = "";
 
@@ -612,15 +594,17 @@ function renderEnemy() {
     div.appendChild(d);
 
   });
+
 }
 
 //////////////////////////
-// UI SUBTITLE
+// UI TEXT
 //////////////////////////
 
 function show(text) {
 
-  let el = document.getElementById("sub");
+  let el =
+    document.getElementById("sub");
 
   if (!el) {
 
@@ -642,18 +626,21 @@ function show(text) {
     el.style.borderRadius = "10px";
 
     document.body.appendChild(el);
+
   }
 
   el.innerText = text;
+
 }
 
 //////////////////////////
-// SHOW PLAYED CARD
+// SHOW CARD
 //////////////////////////
 
 function showCard(card) {
 
-  let area = document.getElementById("playedCard");
+  let area =
+    document.getElementById("playedCard");
 
   area.innerHTML = "";
 
@@ -664,6 +651,7 @@ function showCard(card) {
   img.className = "card";
 
   area.appendChild(img);
+
 }
 
 //////////////////////////
@@ -676,20 +664,25 @@ function endGame(msg) {
 
   gameOver = true;
 
-  let overlay = document.createElement("div");
+  let overlay =
+    document.createElement("div");
 
   overlay.style.position = "fixed";
   overlay.style.top = "0";
   overlay.style.left = "0";
+
   overlay.style.width = "100%";
   overlay.style.height = "100%";
 
-  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.background =
+    "rgba(0,0,0,0.85)";
 
   overlay.style.display = "flex";
+
   overlay.style.flexDirection = "column";
 
   overlay.style.justifyContent = "center";
+
   overlay.style.alignItems = "center";
 
   overlay.style.color = "white";
@@ -698,12 +691,14 @@ function endGame(msg) {
 
   overlay.innerHTML = `
     <h1>${msg}</h1>
+
     <button onclick="location.reload()">
       Restart
     </button>
   `;
 
   document.body.appendChild(overlay);
+
 }
 
 //////////////////////////
@@ -719,7 +714,9 @@ setInterval(() => {
     img.src = "assets/images/die/digo.png";
 
     img.style.position = "fixed";
+
     img.style.bottom = "10px";
+
     img.style.right = "10px";
 
     img.style.width = "90px";
@@ -735,6 +732,7 @@ setInterval(() => {
       img.remove();
 
     }, 2000);
+
   }
 
 }, 4000);
