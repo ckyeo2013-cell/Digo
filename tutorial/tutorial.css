@@ -1,0 +1,86 @@
+/* BACKGROUND */
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #1b5e20;
+  color: white;
+
+  /* 🔥 THIS FIXES YOUR SCROLL ISSUE */
+  overflow-y: auto;
+}
+
+/* MAIN CONTAINER */
+.tutorialContainer {
+  max-width: 750px;
+  margin: 50px auto;
+  padding: 20px;
+}
+
+/* TITLE */
+h1 {
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+/* SUBTITLE */
+.subtitle {
+  text-align: center;
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+/* SECTION HEADERS */
+h2 {
+  margin-top: 25px;
+}
+
+/* TEXT STYLE */
+p, li {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* LISTS */
+ul {
+  padding-left: 20px;
+}
+
+/* DIVIDER */
+hr {
+  margin: 20px 0;
+  opacity: 0.3;
+}
+
+/* NOTE TEXT */
+.note {
+  text-align: center;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* CENTER BUTTON */
+.center {
+  text-align: center;
+  margin-top: 30px;
+}
+
+/* BUTTON (same vibe as homepage) */
+.play-button {
+  padding: 15px 30px;
+  font-size: 18px;
+
+  border: none;
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  background: #0066cc;
+  color: white;
+
+  transition: 0.2s;
+}
+
+.play-button:hover {
+  background: #0088ff;
+  transform: scale(1.05);
+}
