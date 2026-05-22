@@ -1,0 +1,126 @@
+body {
+  text-align: center;
+  font-family: Arial;
+  background: maroon;
+}
+
+h1 {
+  margin-top: 60px;
+  color: white;
+}
+
+.play-button {
+  margin-top: 40px;
+  padding: 20px 40px;
+  font-size: 24px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  background: #0066cc;
+  color: white;
+  transition: 0.2s;
+}
+
+.play-button:hover {
+  background: #0088ff;
+  transform: scale(1.05);
+}
+
+.explain {
+  font-size:20px;
+  color: white;
+  font-weight: bold;
+}
+
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #1b5e20;
+  overflow: hidden;
+}
+
+/* MAIN GAME */
+#gameContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ENEMY AREA */
+#enemyArea {
+  height: 20%;
+  text-align: center;
+  color: white;
+}
+
+/* TABLE AREA */
+#tableArea {
+  flex: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+}
+
+/* PLAYER AREA */
+#playerArea {
+  height: 30%;
+  text-align: center;
+  color: white;
+}
+
+/* CARD PILES */
+#deckPile,
+#playedCard,
+#discardPile {
+  width: 120px;
+  height: 170px;
+
+  background: #eeeeee;
+  border-radius: 12px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: bold;
+
+  box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+
+/* PLAYER HAND */
+#hand {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ACTUAL CARDS */
+.card {
+  width: 100px;
+  border-radius: 10px;
+
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.05);
+}
+
+/* ENEMY BACK CARDS */
+.enemyCards {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.enemyCard {
+  width: 80px;
+  height: 120px;
+
+  background: darkred;
+  border-radius: 10px;
+}
