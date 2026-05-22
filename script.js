@@ -27,7 +27,7 @@ function buildDeck() {
     }
   }
 
-  // SAFE CARDS
+  // SAFE
   add({ name: "Chair", image: "assets/images/misc/chair.png", effect: "nothing" }, 10);
   add({ name: "Check", image: "assets/images/misc/check.png", effect: "money" }, 6);
   add({ name: "Cheese", image: "assets/images/misc/cheese.png", effect: "chaosCheese" }, 5);
@@ -45,9 +45,12 @@ function buildDeck() {
   add({ name: "Pipe Bomb", image: "assets/images/attack/pipeBomb.png", effect: "attack" }, 2);
 
   // DEATH (RARE)
-  add({ name: "Digo", image: "assets/images/die/digo.png", effect: "death" }, 1);
+  add({ name: "Digo", image: "assets/images/die/digo.png", effect: "digo" }, 1);
   add({ name: "Lego Brick", image: "assets/images/die/legoBrick.png", effect: "lego" }, 1);
   add({ name: "Sus USB", image: "assets/images/die/susUsb.png", effect: "usb" }, 1);
+
+  // MELATONIN (FIXED: now ALWAYS real effect)
+  add({ name: "Melatonin", image: "assets/images/misc/melatonin.png", effect: "melatonin" }, 3);
 
   return deck;
 }
@@ -55,7 +58,7 @@ function buildDeck() {
 let deck = buildDeck();
 
 //////////////////////////
-// GAME START
+// START GAME
 //////////////////////////
 
 function startGame() {
@@ -77,24 +80,27 @@ function startGame() {
   render();
   renderEnemy();
   show("Digo is watching...");
+
 }
 
 startGame();
 
 //////////////////////////
-// DRAW SYSTEM (SAFE)
+// DRAW
 //////////////////////////
 
 function drawCard(target) {
 
   if (gameOver) return;
 
-  let card = structuredClone(deck[Math.floor(Math.random() * deck.length)]);
+  let card =
+    structuredClone(deck[Math.floor(Math.random() * deck.length)]);
 
   target.push(card);
 
   if (target === hand) render();
   if (target === enemyHand) renderEnemy();
+
 }
 
 //////////////////////////
@@ -113,6 +119,7 @@ function playCard(i) {
   resolve(card, "player");
 
   endTurn();
+
 }
 
 //////////////////////////
@@ -121,7 +128,10 @@ function playCard(i) {
 
 function resolve(card, owner) {
 
-  if (card.name !== "Melatonin") {
+  //////////////////////
+  // RESET MELATONIN IF NOT USED
+  //////////////////////
+  if (card.effect !== "melatonin") {
     melatoninStack = 0;
   }
 
@@ -136,7 +146,7 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // CHEESE (RNG)
+  // CHEESE
   //////////////////////
   if (card.name === "Cheese") {
 
@@ -146,22 +156,14 @@ function resolve(card, owner) {
     else if (r < 0.5) drawCard(hand);
     else if (r < 0.75) enemyStunned = true;
     else show("Cheese did nothing weird");
+
     return;
   }
 
   //////////////////////
-  // WET FISH (STUN)
+  // MELATONIN (FIXED)
   //////////////////////
-  if (card.name === "Wet Fish") {
-    enemyStunned = true;
-    show("Enemy stunned by fish");
-    return;
-  }
-
-  //////////////////////
-  // MELATONIN
-  //////////////////////
-  if (card.name === "Melatonin") {
+  if (card.effect === "melatonin") {
 
     melatoninStack++;
 
@@ -175,7 +177,16 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // CHAOS GOOSE
+  // WET FISH
+  //////////////////////
+  if (card.effect === "stun") {
+    enemyStunned = true;
+    show("Enemy stunned by fish");
+    return;
+  }
+
+  //////////////////////
+  // CHAOS
   //////////////////////
   if (card.effect === "chaos") {
     Math.random() < 0.5 ? drawCard(hand) : drawCard(enemyHand);
@@ -193,7 +204,7 @@ function resolve(card, owner) {
         removeEnemyDefense();
         show("Enemy blocked Pipe Bomb");
       } else {
-        return endGame("Enemy got destroyed by Pipe Bomb");
+        return endGame("Enemy got deleted by Pipe Bomb");
       }
 
     }
@@ -202,24 +213,17 @@ function resolve(card, owner) {
   }
 
   //////////////////////
-  // LEGO BRICK (YOUR REQUEST)
+  // LEGO BRICK (UNCHANGED)
   //////////////////////
   if (card.name === "Lego Brick") {
 
     let r = Math.random();
 
-    // 40% kill enemy
-    if (r < 0.4) {
-      return endGame("Enemy stepped on Lego Brick");
-    }
+    if (r < 0.4) return endGame("Enemy stepped on Lego Brick");
+    if (r < 0.8) return endGame("You stepped on Lego Brick");
 
-    // 40% kill player
-    if (r < 0.8) {
-      return endGame("You stepped on Lego Brick");
-    }
+    show("Lego Brick did nothing... suspiciously");
 
-    // 20% miss
-    show("Lego Brick did nothing...");
     return;
   }
 
@@ -232,11 +236,41 @@ function resolve(card, owner) {
 
       if (Math.random() < 0.5) {
         return endGame("USB corrupted your system");
-      } else {
-        show("USB survived… but it's watching");
       }
 
+      show("USB survived... for now");
+
     }
+
+    return;
+  }
+
+  //////////////////////
+  // DIGO FIXED (SAFE MODE)
+  //////////////////////
+  if (card.effect === "digo") {
+
+    let modes = ["melatonin", "usb", "clutch"];
+
+    let mode = modes[Math.floor(Math.random() * modes.length)];
+
+    show("Digo bends reality: " + mode);
+
+    hand = hand.map(() => {
+
+      if (mode === "melatonin") {
+        return { name: "Melatonin", image: "assets/images/misc/melatonin.png", effect: "melatonin" };
+      }
+
+      if (mode === "usb") {
+        return { name: "Sus USB", image: "assets/images/die/susUsb.png", effect: "usb" };
+      }
+
+      return { name: "Crazy Pokeball", image: "assets/images/crazy/crazy.png", effect: "clutch" };
+
+    });
+
+    render();
 
     return;
   }
@@ -270,7 +304,7 @@ function endTurn() {
 
     if (enemyStunned) {
       enemyStunned = false;
-      show("Enemy is stunned");
+      show("Enemy stunned");
       drawCard(hand);
       render();
       playerTurn = true;
@@ -291,7 +325,8 @@ function endTurn() {
       return;
     }
 
-    let play = playable[Math.floor(Math.random() * playable.length)];
+    let play =
+      playable[Math.floor(Math.random() * playable.length)];
 
     enemyHand.splice(enemyHand.indexOf(play), 1);
 
@@ -370,7 +405,6 @@ function show(text) {
   if (!el) {
 
     el = document.createElement("div");
-
     el.id = "sub";
 
     el.style.position = "fixed";
@@ -441,6 +475,7 @@ function endGame(msg) {
   overlay.style.left = "0";
   overlay.style.width = "100%";
   overlay.style.height = "100%";
+
   overlay.style.background = "rgba(0,0,0,0.85)";
   overlay.style.color = "white";
   overlay.style.display = "flex";
@@ -455,13 +490,4 @@ function endGame(msg) {
 
   document.body.appendChild(overlay);
 
-}
-
-//////////////////////////
-// START HAND
-//////////////////////////
-
-for (let i = 0; i < 5; i++) {
-  drawCard(hand);
-  drawCard(enemyHand);
 }
