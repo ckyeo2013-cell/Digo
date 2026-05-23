@@ -1,86 +1,125 @@
-/* BACKGROUND */
+/* =========================
+   DIGO TUTORIAL - MATCHED STYLE
+========================= */
+
 body {
   margin: 0;
-  font-family: Arial;
-  background: #1b5e20;
+  font-family: Arial, sans-serif;
+
+  background: linear-gradient(to bottom, #6fcd6f, #4f9e4f);
+
   color: white;
 
-  /* 🔥 THIS FIXES YOUR SCROLL ISSUE */
-  overflow-y: auto;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* MAIN CONTAINER */
-.tutorialContainer {
-  max-width: 750px;
-  margin: 50px auto;
-  padding: 20px;
+/* =========================
+   TUTORIAL CONTAINER
+========================= */
+
+.tutorial {
+  width: 85%;
+  max-width: 700px;
+
+  padding: 25px;
+
+  border-radius: 18px;
+
+  background: rgba(0,0,0,0.18);
+
+  backdrop-filter: blur(4px);
+
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.25),
+    0 10px 25px rgba(0,0,0,0.3);
+
+  animation: fadeUp 0.4s ease;
 }
 
-/* TITLE */
-h1 {
+/* =========================
+   TITLE
+========================= */
+
+.tutorial h1 {
   text-align: center;
-  margin-bottom: 5px;
+
+  font-size: 34px;
+
+  margin-bottom: 10px;
+
+  text-shadow: 0 0 10px rgba(0,0,0,0.4);
 }
 
-/* SUBTITLE */
-.subtitle {
+/* =========================
+   TEXT / SECTIONS
+========================= */
+
+.tutorial p {
+  line-height: 1.5;
+
+  opacity: 0.9;
+
   text-align: center;
-  opacity: 0.8;
-  margin-bottom: 30px;
 }
 
-/* SECTION HEADERS */
-h2 {
-  margin-top: 25px;
-}
+.tutorial h2 {
+  margin-top: 20px;
 
-/* TEXT STYLE */
-p, li {
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-/* LISTS */
-ul {
-  padding-left: 20px;
-}
-
-/* DIVIDER */
-hr {
-  margin: 20px 0;
-  opacity: 0.3;
-}
-
-/* NOTE TEXT */
-.note {
   text-align: center;
-  font-style: italic;
-  opacity: 0.8;
+
+  font-size: 22px;
 }
 
-/* CENTER BUTTON */
-.center {
-  text-align: center;
-  margin-top: 30px;
-}
+/* =========================
+   BUTTONS
+========================= */
 
-/* BUTTON (same vibe as homepage) */
-.play-button {
-  padding: 15px 30px;
-  font-size: 18px;
+.tutorial button {
+  display: block;
+
+  margin: 20px auto 0;
+
+  padding: 12px 24px;
 
   border: none;
+
   border-radius: 12px;
 
   cursor: pointer;
 
-  background: #0066cc;
+  background: #5fbf5f;
+
   color: white;
 
-  transition: 0.2s;
+  font-weight: bold;
+
+  font-size: 16px;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.play-button:hover {
-  background: #0088ff;
+.tutorial button:hover {
   transform: scale(1.05);
+
+  box-shadow: 0 0 15px rgba(255,255,255,0.2);
+}
+
+/* =========================
+   FADE ANIMATION
+========================= */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
